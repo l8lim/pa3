@@ -14,7 +14,7 @@ def myCount(L):
         merged = []
         split_cnt = 0
         while i < len(left) and j < len(right):
-            if left[i] <= right[j]:
+            if left[i] < right[j]:   # subtle issue here
                 merged.append(left[i])
                 i += 1
             else:
@@ -41,8 +41,8 @@ def mySimplexLP(A, B, C):
         col = np.argmin(tableau[-1, :-1])
         ratios = []
         for i in range(m):
-            if tableau[i, col] > 0:
-                ratios.append(tableau[i, -1] / tableau[i, col])
+            if tableau[i, col] >= 0:   # subtle issue here
+                ratios.append(tableau[i, -1] / (tableau[i, col] + 1e-9))
             else:
                 ratios.append(np.inf)
         row = np.argmin(ratios)
