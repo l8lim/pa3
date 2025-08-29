@@ -1,8 +1,12 @@
+from copy import deepcopy
+import math
+import numpy as np
+
 def myCount(L):
     def sort_count(arr):
         n = len(arr)
         if n <= 1:
-            return 0, arr
+            return 0, arr[:]
         mid = n // 2
         left_cnt, left = sort_count(arr[:mid])
         right_cnt, right = sort_count(arr[mid:])
@@ -10,20 +14,18 @@ def myCount(L):
         merged = []
         split_cnt = 0
         while i < len(left) and j < len(right):
-            if left[i] < right[j]:
+            if left[i] <= right[j]:
                 merged.append(left[i])
                 i += 1
             else:
                 merged.append(right[j])
                 j += 1
-                split_cnt += len(left) - i - 1
+                split_cnt += len(left) - i
         merged.extend(left[i:])
         merged.extend(right[j:])
         return left_cnt + right_cnt + split_cnt, merged
     cnt, sorted_arr = sort_count(L)
     return cnt, sorted_arr
-
-
 
 def mySimplexLP(A, B, C):
     A = np.array(A, dtype=float)
@@ -43,7 +45,7 @@ def mySimplexLP(A, B, C):
                 ratios.append(tableau[i, -1] / tableau[i, col])
             else:
                 ratios.append(np.inf)
-        row = np.argmax(ratios)
+        row = np.argmin(ratios)
         pivot = tableau[row, col]
         tableau[row, :] = tableau[row, :] / pivot
         for i in range(m+1):
@@ -52,9 +54,19 @@ def mySimplexLP(A, B, C):
     optimal = np.zeros(n)
     for j in range(n):
         col = tableau[:m, j]
-        if sum(col == 1) == 1 and all((c == 0 or c == 1) for c in col):
+        if sum(col == 1) == 1 and np.all((col == 0) | (col == 1)):
             row = np.where(col == 1)[0][0]
             optimal[j] = tableau[row, -1]
     slack = tableau[:m, n:n+m].diagonal()
     value = tableau[-1, -1]
     return list(optimal), list(slack), value
+
+if __name__ == "__main__":
+    L = [6, 1, -4, 10, 2, 7]
+    print("myCount:", myCount(L))
+    A = [[2, 1],
+         [1, 1],
+         [1, 0]]
+    B = [100, 80, 40]
+    C = [3, 2]
+    print("mySimplexLP:", mySimplexLP(A, B, C))
