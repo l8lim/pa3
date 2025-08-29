@@ -1,6 +1,11 @@
 from copy import deepcopy
 import math
 import numpy as np
+## Name: Lianna Lim    
+## PID: A18576839
+#######################################################
+############## QUESTION 1 HERE ################
+#######################################################
 
 def myCount(L):
     def sort_count(arr):
@@ -26,6 +31,12 @@ def myCount(L):
         return left_cnt + right_cnt + split_cnt, merged
     cnt, sorted_arr = sort_count(L)
     return cnt, sorted_arr
+
+'''
+#########################################################
+############## QUESTION 2 HERE ##################
+#########################################################
+'''
 
 def mySimplexLP(A, B, C):
     A = np.array(A, dtype=float)
