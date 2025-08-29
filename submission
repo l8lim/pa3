@@ -22,3 +22,39 @@ def myCount(L):
         return left_cnt + right_cnt + split_cnt, merged
     cnt, sorted_arr = sort_count(L)
     return cnt, sorted_arr
+
+
+
+def mySimplexLP(A, B, C):
+    A = np.array(A, dtype=float)
+    B = np.array(B, dtype=float)
+    C = np.array(C, dtype=float)
+    m, n = A.shape
+    tableau = np.zeros((m+1, n+m+1))
+    tableau[:m, :n] = A
+    tableau[:m, n:n+m] = np.eye(m)
+    tableau[:m, -1] = B
+    tableau[-1, :n] = -C
+    while any(tableau[-1, :-1] < 0):
+        col = np.argmin(tableau[-1, :-1])
+        ratios = []
+        for i in range(m):
+            if tableau[i, col] > 0:
+                ratios.append(tableau[i, -1] / tableau[i, col])
+            else:
+                ratios.append(np.inf)
+        row = np.argmax(ratios)
+        pivot = tableau[row, col]
+        tableau[row, :] = tableau[row, :] / pivot
+        for i in range(m+1):
+            if i != row:
+                tableau[i, :] -= tableau[i, col] * tableau[row, :]
+    optimal = np.zeros(n)
+    for j in range(n):
+        col = tableau[:m, j]
+        if sum(col == 1) == 1 and all((c == 0 or c == 1) for c in col):
+            row = np.where(col == 1)[0][0]
+            optimal[j] = tableau[row, -1]
+    slack = tableau[:m, n:n+m].diagonal()
+    value = tableau[-1, -1]
+    return list(optimal), list(slack), value
