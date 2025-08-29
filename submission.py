@@ -32,34 +32,40 @@ def mySimplexLP(A, B, C):
     B = np.array(B, dtype=float)
     C = np.array(C, dtype=float)
     m, n = A.shape
+
     tableau = np.zeros((m+1, n+m+1))
     tableau[:m, :n] = A
     tableau[:m, n:n+m] = np.eye(m)
     tableau[:m, -1] = B
     tableau[-1, :n] = -C
-    while any(tableau[-1, :-1] < 0):
+
+    while np.any(tableau[-1, :-1] < -1e-12):
         col = np.argmin(tableau[-1, :-1])
-        ratios = []
-        for i in range(m):
-            if tableau[i, col] >= 0:   # subtle issue here
-                ratios.append(tableau[i, -1] / (tableau[i, col] + 1e-9))
-            else:
-                ratios.append(np.inf)
+        ratios = np.full(m, np.inf)
+        pos = tableau[:m, col] > 1e-12
+        ratios[pos] = tableau[pos, -1] / tableau[pos, col]
+        if not np.isfinite(ratios).any():
+            break
         row = np.argmin(ratios)
+
         pivot = tableau[row, col]
-        tableau[row, :] = tableau[row, :] / pivot
+        tableau[row, :] /= pivot
         for i in range(m+1):
             if i != row:
                 tableau[i, :] -= tableau[i, col] * tableau[row, :]
-    optimal = np.zeros(n)
+
+    x = np.zeros(n)
     for j in range(n):
         col = tableau[:m, j]
-        if sum(col == 1) == 1 and np.all((col == 0) | (col == 1)):
-            row = np.where(col == 1)[0][0]
-            optimal[j] = tableau[row, -1]
-    slack = tableau[:m, n:n+m].diagonal()
+        if np.sum(np.isclose(col, 1.0, atol=1e-9)) == 1 and np.all(np.isclose(col, 0.0, atol=1e-9) | np.isclose(col, 1.0, atol=1e-9)):
+            row = np.where(np.isclose(col, 1.0, atol=1e-9))[0][0]
+            x[j] = tableau[row, -1]
+
+    s = B - A @ x
+    s[np.abs(s) < 1e-10] = 0.0
+
     value = tableau[-1, -1]
-    return list(optimal), list(slack), value
+    return list(x), list(s), value
 
 if __name__ == "__main__":
     L = [6, 1, -4, 10, 2, 7]
